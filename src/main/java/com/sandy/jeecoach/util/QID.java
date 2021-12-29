@@ -2,22 +2,11 @@ package com.sandy.jeecoach.util;
 
 public abstract class QID {
     
-    protected String[] qIdParts = null ;
-    
-    protected QID( String[] parts ) {
-        this.qIdParts = parts ;
-    }
+    protected QID() {}
 
-    public abstract void parseQID() ;
+    public abstract void incrementQuestionNumber() ;
     
-    public String getQRefPart() {
-        
-        StringBuilder sb = new StringBuilder() ;
-        for( String part : qIdParts ) {
-            sb.append( part + "/" ) ;
-        }
-        sb.deleteCharAt( sb.length()-1 ) ;
-        
-        return sb.toString() ;
-    }
+    public abstract String getQRefPart() ;
+    
+    public abstract String getFilePartName() ;
 }

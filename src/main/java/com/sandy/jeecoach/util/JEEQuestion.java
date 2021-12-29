@@ -30,8 +30,6 @@ public class JEEQuestion {
     public static final String NT  = "NT"  ;
     public static final String LCT = "LCT" ;
     
-    private String  fileName     = null ;
-    private String  qRef         = null ;
     private boolean isLCTContext = false ;
     
     private String subjectCode  = null ;  // 0
@@ -44,9 +42,11 @@ public class JEEQuestion {
     private int    partNumber   = -1 ;    // Last
     
     public JEEQuestion( String fileName ) {
-        this.fileName = fileName ;
         parseFileName( fileName ) ;
-        this.qRef = getQRef() ;
+    }
+    
+    public JEEQuestion getClone() {
+        return new JEEQuestion( getFileName() ) ;
     }
     
     private void parseFileName( String fileName ) {
@@ -85,6 +85,31 @@ public class JEEQuestion {
         }
     }
     
+    public String getFileName() {
+        StringBuilder sb = new StringBuilder() ;
+        sb.append( this.subjectCode ).append( "_" )
+          .append( this.standard ).append( "_" )
+          .append( this.bookCode ).append( "_" )
+          .append( this.chapterNum ).append( "_" )
+          .append( this.questionType ).append( "_" ) ;
+        
+        if( this.questionType.equals( LCT ) ) {
+            sb.append( this.lctSequence ).append( "_" ) ;
+        }
+        
+        if( this.qId != null ) {
+            sb.append( this.qId.getFilePartName() ) ;
+        }
+        
+        if( this.partNumber != -1 ) {
+            sb.append( "(" + this.partNumber + ")" ) ;
+        }
+        
+        sb.append( ".png" ) ;
+        
+        return sb.toString() ;
+    }
+    
     private String stripFileExtension( String fileName ) {
         
         String fName = fileName ;
@@ -119,8 +144,6 @@ public class JEEQuestion {
             throw new IllegalArgumentException( 
                     "Book " + this.bookCode + " not recognized." ) ;
         }
-        
-        this.qId.parseQID() ;
     }
     
     private int getInt( String intStr ) {
@@ -136,10 +159,6 @@ public class JEEQuestion {
             return null ;
         }
         
-        if( this.qRef != null ) {
-            return this.qRef ;
-        }
-
         StringBuilder sb = new StringBuilder() ;
         sb.append( this.subjectCode )
           .append( "/" )
@@ -162,16 +181,36 @@ public class JEEQuestion {
         return sb.toString() ;
     }
     
+    public boolean isPart() {
+        return this.partNumber != -1 ;
+    }
+    
+    public JEEQuestion nextQuestion() {
+        JEEQuestion q = this.getClone() ;
+        if( q.isPart() ) {
+            q.partNumber++ ;
+        }
+        else {
+            q.getQId().incrementQuestionNumber() ;
+        }
+        return q ;
+    }
+    
     public static void main( String[] args ) {
         
         String[] ids = {
-            "P_6_PF_1_LCT_2_CA_2_23.png"
+            "P_6_PF_1_SCA_CA_1_1.png"
         } ;
         
         JEEQuestion q = null ;
         for( String id : ids ) {
             q = new JEEQuestion( id ) ;
-            System.out.println( q.getQRef() ) ;
+            System.out.println( q.getQRef() + " :: " + q.getFileName() ) ;
+            System.out.println( "\t" + id.equals( q.getFileName() ) ) ; 
+
+            q = q.nextQuestion() ;
+            System.out.println( q.getQRef() + " :: " + q.getFileName() ) ;
+            System.out.println( "\t" + id.equals( q.getFileName() ) ) ; 
         }
     }
 }
