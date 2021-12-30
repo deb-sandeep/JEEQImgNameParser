@@ -5,6 +5,7 @@ import static com.sandy.jeecoach.util.JEEBookCode.PEARSON_IIT_FOUNDATION ;
 import java.util.Arrays ;
 
 import lombok.Data ;
+import lombok.EqualsAndHashCode ;
 
 // [P|M|C]_[6-12]_[bookId]_[chapterNumber]_[qType]_<LCT#>_{[qID]}<(n)>.png
 //
@@ -22,7 +23,8 @@ import lombok.Data ;
 // Catering for LCT context - how?
 
 @Data
-public class JEEQuestion {
+@EqualsAndHashCode( callSuper = false )
+public class JEEQuestion extends AbstractQuestion {
     
     public static final String SCA = "SCA" ;
     public static final String MCA = "MCA" ;
@@ -185,7 +187,8 @@ public class JEEQuestion {
         return this.partNumber != -1 ;
     }
     
-    public JEEQuestion nextQuestion() {
+    @Override
+    public AbstractQuestion nextQuestion() {
         JEEQuestion q = this.getClone() ;
         if( q.isPart() ) {
             q.partNumber++ ;
@@ -208,7 +211,7 @@ public class JEEQuestion {
             System.out.println( q.getQRef() + " :: " + q.getFileName() ) ;
             System.out.println( "\t" + id.equals( q.getFileName() ) ) ; 
 
-            q = q.nextQuestion() ;
+            q = (JEEQuestion)q.nextQuestion() ;
             System.out.println( q.getQRef() + " :: " + q.getFileName() ) ;
             System.out.println( "\t" + id.equals( q.getFileName() ) ) ; 
         }
