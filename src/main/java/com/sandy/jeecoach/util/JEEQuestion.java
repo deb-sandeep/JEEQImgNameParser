@@ -192,6 +192,10 @@ public class JEEQuestion extends AbstractQuestion {
         JEEQuestion q = this.getClone() ;
         if( q.isPart() ) {
             q.partNumber++ ;
+            if( q.partNumber > 3 ) {
+                q.partNumber = -1 ;
+                q.getQId().incrementQuestionNumber() ;
+            }
         }
         else {
             q.getQId().incrementQuestionNumber() ;
