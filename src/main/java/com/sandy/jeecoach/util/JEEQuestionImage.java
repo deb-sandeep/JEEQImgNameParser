@@ -2,7 +2,9 @@ package com.sandy.jeecoach.util ;
 
 import static com.sandy.jeecoach.util.JEEBookCode.PEARSON_IIT_FOUNDATION ;
 
+import java.io.File ;
 import java.util.Arrays ;
+import java.util.List ;
 
 import lombok.Data ;
 import lombok.EqualsAndHashCode ;
@@ -19,18 +21,19 @@ import lombok.EqualsAndHashCode ;
 //                multiple parts
 // (n)          - Part number
 
-
-// Catering for LCT context - how?
-
 @Data
 @EqualsAndHashCode( callSuper = false )
-public class JEEQuestion extends AbstractQuestion {
+public class JEEQuestionImage extends AbstractQuestion 
+    implements Comparable<JEEQuestionImage>{
     
     public static final String SCA = "SCA" ;
     public static final String MCA = "MCA" ;
     public static final String MMT = "MMT" ;
     public static final String NT  = "NT"  ;
     public static final String LCT = "LCT" ;
+    
+    private static List<String> qTypeSeq = Arrays.asList( SCA, MCA, NT, LCT, MMT ) ;
+    private static List<String> SUB_SEQ   = Arrays.asList( "P", "C", "M" ) ;
     
     private boolean isLCTContext = false ;
     
@@ -43,12 +46,16 @@ public class JEEQuestion extends AbstractQuestion {
     private QID    qId          = null ;  // 5/6 -> last-1
     private int    partNumber   = -1 ;    // Last
     
-    public JEEQuestion( String fileName ) {
-        parseFileName( fileName ) ;
+    private File imgFile = null ;
+    
+    public JEEQuestionImage( File file ) {
+        this.imgFile = file ;
+        parseFileName( this.imgFile.getName() ) ;
     }
     
-    public JEEQuestion getClone() {
-        return new JEEQuestion( getFileName() ) ;
+    public JEEQuestionImage getClone() {
+        File file = new File( imgFile.getParent(), getFileName() ) ;
+        return new JEEQuestionImage( file ) ;
     }
     
     private void parseFileName( String fileName ) {
@@ -87,6 +94,16 @@ public class JEEQuestion extends AbstractQuestion {
         }
     }
     
+    private void parseBookSpecificQuestionId( String[] qIdParts ) {
+        if( this.bookCode.equals( PEARSON_IIT_FOUNDATION ) ) {
+            this.qId = new PearsonQID( qIdParts ) ;
+        }
+        else {
+            throw new IllegalArgumentException( 
+                    "Book " + this.bookCode + " not recognized." ) ;
+        }
+    }
+    
     public String getFileName() {
         StringBuilder sb = new StringBuilder() ;
         sb.append( this.subjectCode ).append( "_" )
@@ -95,18 +112,20 @@ public class JEEQuestion extends AbstractQuestion {
           .append( this.chapterNum ).append( "_" )
           .append( this.questionType ).append( "_" ) ;
         
-        if( this.questionType.equals( LCT ) ) {
-            sb.append( this.lctSequence ).append( "_" ) ;
-        }
-        
-        if( this.qId != null ) {
+        if( !isLCT() ) {
             sb.append( this.qId.getFilePartName() ) ;
+        }
+        else {
+            sb.append( this.lctSequence ) ;
+            if( !isLCTContext ) {
+                sb.append( "_" )
+                  .append( this.qId.getFilePartName() ) ;
+            }
         }
         
         if( this.partNumber != -1 ) {
             sb.append( "(" + this.partNumber + ")" ) ;
         }
-        
         sb.append( ".png" ) ;
         
         return sb.toString() ;
@@ -115,7 +134,6 @@ public class JEEQuestion extends AbstractQuestion {
     private String stripFileExtension( String fileName ) {
         
         String fName = fileName ;
-        
         if( fName.endsWith( ".png" ) ) {
             fName = fileName.substring( 0, fileName.length()-4 ) ;
         }
@@ -136,16 +154,6 @@ public class JEEQuestion extends AbstractQuestion {
             fName = fName.substring( 0, startIndex ) ;
         }
         return fName ;
-    }
-    
-    private void parseBookSpecificQuestionId( String[] qIdParts ) {
-        if( this.bookCode.equals( PEARSON_IIT_FOUNDATION ) ) {
-            this.qId = new PearsonQID( qIdParts ) ;
-        }
-        else {
-            throw new IllegalArgumentException( 
-                    "Book " + this.bookCode + " not recognized." ) ;
-        }
     }
     
     private int getInt( String intStr ) {
@@ -187,9 +195,13 @@ public class JEEQuestion extends AbstractQuestion {
         return this.partNumber != -1 ;
     }
     
+    public boolean isLCT() {
+        return this.questionType.equals( LCT ) ;
+    }
+    
     @Override
     public AbstractQuestion nextQuestion() {
-        JEEQuestion q = this.getClone() ;
+        JEEQuestionImage q = this.getClone() ;
         if( q.isPart() ) {
             q.partNumber++ ;
             if( q.partNumber > 3 ) {
@@ -203,19 +215,75 @@ public class JEEQuestion extends AbstractQuestion {
         return q ;
     }
     
+    @Override
+    public int compareTo( JEEQuestionImage img ) {
+        if( getSubjectSeq() != img.getSubjectSeq() ) {
+            return getSubjectSeq() - img.getSubjectSeq() ;
+        }
+        
+        if( standard != img.standard ) {
+            return standard - img.standard ;
+        }
+        
+        if( !bookCode.equals( img.bookCode ) ) {
+            return bookCode.compareTo( img.bookCode ) ;
+        }
+        
+        if( chapterNum != img.chapterNum ) {
+            return chapterNum - img.chapterNum ;
+        }
+        
+        if( getQTypeSeq() != img.getQTypeSeq() ) {
+            return getQTypeSeq() - img.getQTypeSeq() ;
+        }
+        
+        if( isLCT() && img.isLCT() ) {
+            if( lctSequence != img.lctSequence ) {
+                return lctSequence - img.lctSequence ;
+            }
+            else if( this.qId == null ) {
+                return -1 ;
+            }
+            else if( img.qId == null ) {
+                return 1 ;
+            }
+        }
+        
+        if( qId != null && img.qId != null ) {
+            if( qId.compareTo( img.qId ) != 0 ) {
+                return qId.compareTo( img.qId ) ;
+            }
+        }
+        
+        if( partNumber != -1 && img.partNumber != -1 ) {
+            return partNumber - img.partNumber ;
+        }
+
+        return 0 ;
+    }
+    
+    private int getSubjectSeq() {
+        return SUB_SEQ.indexOf( subjectCode ) ;
+    }
+    
+    private int getQTypeSeq() {
+        return qTypeSeq.indexOf( questionType ) ;
+    }
+    
     public static void main( String[] args ) {
         
         String[] ids = {
             "P_6_PF_1_SCA_CA_1_1.png"
         } ;
         
-        JEEQuestion q = null ;
+        JEEQuestionImage q = null ;
         for( String id : ids ) {
-            q = new JEEQuestion( id ) ;
+            File file = new File( id ) ;
+            q = new JEEQuestionImage( file ) ;
             System.out.println( q.getQRef() + " :: " + q.getFileName() ) ;
             System.out.println( "\t" + id.equals( q.getFileName() ) ) ; 
 
-            q = (JEEQuestion)q.nextQuestion() ;
+            q = (JEEQuestionImage)q.nextQuestion() ;
             System.out.println( q.getQRef() + " :: " + q.getFileName() ) ;
             System.out.println( "\t" + id.equals( q.getFileName() ) ) ; 
         }

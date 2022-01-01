@@ -1,6 +1,6 @@
 package com.sandy.jeecoach.util;
 
-public abstract class QID {
+public abstract class QID implements Comparable<QID>{
     
     protected QID() {}
 

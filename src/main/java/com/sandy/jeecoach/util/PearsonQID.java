@@ -1,5 +1,8 @@
 package com.sandy.jeecoach.util;
 
+import java.util.Arrays ;
+import java.util.List ;
+
 import lombok.Data ;
 import lombok.EqualsAndHashCode ;
 
@@ -31,6 +34,7 @@ public class PearsonQID extends QID {
     public static String AT   = "AT" ;
     
     public static String[] SECTION_IDS = { VSAT, SAT, ETQ, CA, AT } ;
+    public static List<String> SECTION_SEQ = Arrays.asList( VSAT, SAT, ETQ, CA, AT ) ;
     
     private String sectionId = null ;
     
@@ -121,5 +125,28 @@ public class PearsonQID extends QID {
         sb.append( "_" + this.questionNumber ) ;
         
         return sb.toString() ;
+    }
+
+
+    @Override
+    public int compareTo( QID o ) {
+        if( !this.getClass().getName().equals( o.getClass().getName() ) ) {
+            return this.getClass().getName().compareTo( o.getClass().getName() ) ;
+        }
+        
+        PearsonQID qid = ( PearsonQID )o ;
+        if( getSecSeq() != qid.getSecSeq() ) {
+            return getSecSeq() - qid.getSecSeq() ;
+        }
+        
+        if( subSectionNumber != qid.subSectionNumber ) {
+            return subSectionNumber - qid.subSectionNumber ;
+        }
+        
+        return questionNumber - qid.questionNumber ;
+    }
+    
+    public int getSecSeq() {
+        return SECTION_SEQ.indexOf( sectionId ) ;
     }
 }
