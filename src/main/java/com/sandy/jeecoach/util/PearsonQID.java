@@ -6,6 +6,8 @@ import java.util.List ;
 import lombok.Data ;
 import lombok.EqualsAndHashCode ;
 
+import static com.sandy.jeecoach.util.JEEQuestionImage.* ;
+
 /**
  * For Pearson, questions are arranged in sections. The sections are as follows:
  * 
@@ -45,56 +47,45 @@ public class PearsonQID extends QID {
     
     private int questionNumber = -1 ;
     
+    private ValidationHelper validator = new ValidationHelper() ;
+    
     PearsonQID( String[] parts ) {
         parseQID( parts ) ;
     }
 
     private void parseQID( String[] qIdParts ) {
+        
         if( qIdParts.length < 2 || qIdParts.length > 3 ) {
-            
-            throw new IllegalArgumentException( "\nPearson IIT foundation " +
-            "has question id in 2 or 3 segments. Section ID + Question #.\n" + 
-            "Supplied qIdParts have " + qIdParts.length + " segments." ) ;
+            throw new IllegalArgumentException( 
+                    "Invalid number of PF qID segments. Should be 2-3" ) ;
         }
         
         this.sectionId = qIdParts[0].trim() ;
+        validator.validatePFSectionId( this.sectionId ) ;
+        
         extractAttributes( qIdParts ) ;
     }
     
     private void extractAttributes( String[] qIdParts ) {
         
-        boolean isSectionIdValid = false ;
-        for( String validId : SECTION_IDS ) {
-            if( this.sectionId.equals( validId ) ) {
-                isSectionIdValid = true ;
-            }
-        }
-        
-        if( !isSectionIdValid ) {
-            throw new IllegalArgumentException( 
-                "Invalid Pearson section id " + this.sectionId ) ;
-        }
-        
         if( this.sectionId.equals( AT ) || 
             this.sectionId.equals( CA ) ) {
             
             if( qIdParts.length != 3 ) {
-                throw new IllegalArgumentException( "\nPearson IIT foundation " +
-                    "has question id for AT, CA in 3 segments.\n" + 
-                    "Supplied qIdParts have " + qIdParts.length + " segments." ) ;
+                throw new IllegalArgumentException( 
+                    "For PF section AT and CA three segments are required" ) ;
             }
             
-            subSectionNumber = Integer.parseInt( qIdParts[1].trim() ) ;
-            questionNumber = Integer.parseInt( qIdParts[2].trim() ) ;
+            subSectionNumber = getInt( "Section number", qIdParts[1].trim() ) ;
+            questionNumber = getInt( "Question number", qIdParts[2].trim() ) ;
         }
         else {
             if( qIdParts.length != 2 ) {
-                throw new IllegalArgumentException( "\nPearson IIT foundation " +
-                    "has question id for VSAT, SAT, ETQ in 2 segments.\n" + 
-                    "Supplied qIdParts have " + qIdParts.length + " segments." ) ;
+                throw new IllegalArgumentException( 
+                    "For PF sections except AT, CA there are two segments" ) ;
             }
             
-            questionNumber = Integer.parseInt( qIdParts[1].trim() ) ;
+            questionNumber = getInt( "Question number", qIdParts[1].trim() ) ;
         }
     }
 

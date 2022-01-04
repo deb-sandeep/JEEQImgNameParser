@@ -32,8 +32,8 @@ public class JEEQuestionImage extends AbstractQuestion
     public static final String NT  = "NT"  ;
     public static final String LCT = "LCT" ;
     
-    private static List<String> qTypeSeq = Arrays.asList( SCA, MCA, NT, LCT, MMT ) ;
-    private static List<String> SUB_SEQ   = Arrays.asList( "P", "C", "M" ) ;
+    static List<String> Q_TYPE_SEQ = Arrays.asList( SCA, MCA, NT, LCT, MMT ) ;
+    static List<String> SUB_SEQ   = Arrays.asList( "P", "C", "M" ) ;
     
     private boolean isLCTContext = false ;
     
@@ -47,8 +47,10 @@ public class JEEQuestionImage extends AbstractQuestion
     private int    partNumber   = -1 ;    // Last
     
     private File imgFile = null ;
+    private ValidationHelper validator = new ValidationHelper() ;
     
     public JEEQuestionImage( File file ) {
+        
         this.imgFile = file ;
         parseFileName( this.imgFile.getName() ) ;
     }
@@ -58,7 +60,10 @@ public class JEEQuestionImage extends AbstractQuestion
         return new JEEQuestionImage( file ) ;
     }
     
-    private void parseFileName( String fileName ) {
+    private void parseFileName( String fileName ) 
+        throws IllegalArgumentException {
+        
+        validator.checkNullFile( this.imgFile ) ;
         
         String fName = fileName ;
         
@@ -67,16 +72,27 @@ public class JEEQuestionImage extends AbstractQuestion
         
         // Tokenize the remaining string into parts
         String[] parts = fName.split( "_" ) ;
+        
+        validator.checkMinimumPreambleParts( parts ) ;
 
-        this.subjectCode  = parts[0].trim() ;
-        this.standard     = getInt( parts[1] ) ;
-        this.bookCode     = parts[2].trim() ;
-        this.chapterNum   = getInt( parts[3] ) ;
+        this.subjectCode = parts[0].trim() ;
+        validator.validateSubjectCode( this.subjectCode ) ;
+        
+        this.standard = getInt( "Standard", parts[1] ) ;
+        
+        this.bookCode = parts[2].trim() ;
+        validator.validateBookCode( this.bookCode ) ;
+        
+        this.chapterNum = getInt( "Chapter Number", parts[3] ) ;
+        
         this.questionType = parts[4].trim() ;
+        validator.validateQuestionType( this.questionType ) ;
         
         String[] qIdParts = null ;
         if( this.questionType.equals( LCT ) ) {
-            this.lctSequence = getInt( parts[5] ) ;
+            
+            this.lctSequence = getInt( "LCT sequence", parts[5] ) ;
+            
             qIdParts = Arrays.copyOfRange( parts, 6, parts.length ) ;
             if( qIdParts == null || qIdParts.length == 0 ) {
                 // This implies that this is a LCT context
@@ -92,6 +108,18 @@ public class JEEQuestionImage extends AbstractQuestion
             // to which LCT context gets attached to.
             parseBookSpecificQuestionId( qIdParts ) ;
         }
+    }
+    
+    public static int getInt( String field, String intStr ) {
+        intStr = intStr.trim() ;
+        int val = 0 ;
+        try {
+            val = Integer.parseInt( intStr ) ;
+        }
+        catch( Exception e ) {
+            throw new IllegalArgumentException( intStr + " is not an int value." ) ;
+        }
+        return val ; 
     }
     
     private void parseBookSpecificQuestionId( String[] qIdParts ) {
@@ -156,11 +184,6 @@ public class JEEQuestionImage extends AbstractQuestion
         return fName ;
     }
     
-    private int getInt( String intStr ) {
-        intStr = intStr.trim() ;
-        return Integer.parseInt( intStr ) ;
-    }
-    
     public String getQRef() {
         
         if( isLCTContext ) {
@@ -209,7 +232,7 @@ public class JEEQuestionImage extends AbstractQuestion
                 q.getQId().incrementQuestionNumber() ;
             }
         }
-        else {
+        else if( !q.isLCTContext ) {
             q.getQId().incrementQuestionNumber() ;
         }
         return q ;
@@ -267,13 +290,13 @@ public class JEEQuestionImage extends AbstractQuestion
     }
     
     private int getQTypeSeq() {
-        return qTypeSeq.indexOf( questionType ) ;
+        return Q_TYPE_SEQ.indexOf( questionType ) ;
     }
     
     public static void main( String[] args ) {
         
         String[] ids = {
-            "P_6_PF_1_SCA_CA_1_1.png"
+            "P_6_PF_1_LCT_1.png"
         } ;
         
         JEEQuestionImage q = null ;
