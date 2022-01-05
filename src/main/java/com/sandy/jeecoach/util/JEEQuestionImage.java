@@ -124,7 +124,7 @@ public class JEEQuestionImage extends AbstractQuestion
     
     private void parseBookSpecificQuestionId( String[] qIdParts ) {
         if( this.bookCode.equals( PEARSON_IIT_FOUNDATION ) ) {
-            this.qId = new PearsonQID( qIdParts ) ;
+            this.qId = new PearsonQID( this, qIdParts ) ;
         }
         else {
             throw new IllegalArgumentException( 
@@ -186,31 +186,48 @@ public class JEEQuestionImage extends AbstractQuestion
     
     public String getQRef() {
         
-        if( isLCTContext ) {
-            // LCT Contexts are not questions in themselves and hence do 
-            // not have a question reference number.
-            return null ;
-        }
-        
         StringBuilder sb = new StringBuilder() ;
-        sb.append( this.subjectCode )
+        sb.append( subjectCode )
           .append( "/" )
-          .append( this.standard )
+          .append( standard )
           .append( "/" )
-          .append( this.bookCode )
+          .append( bookCode )
           .append( "/" )
-          .append( this.chapterNum )
+          .append( chapterNum )
           .append( "/" )
-          .append( this.questionType )
+          .append( questionType )
           .append( "/" ) ;
         
-        if( this.lctSequence != -1 ) {
-            sb.append( this.lctSequence )
+        if( lctSequence != -1 ) {
+            sb.append( lctSequence )
               .append( "/" ) ;
         }
         
-        sb.append( this.qId.getQRefPart() ) ;
+        if( qId != null ) {
+            sb.append( qId.getQRefPart() ) ;
+        }
           
+        return sb.toString() ;
+    }
+    
+    public String getLCTCtxQRef() {
+        if( !isLCT() ) {
+            throw new IllegalStateException( "Not an LCT question image." ) ;
+        }
+        
+        StringBuilder sb = new StringBuilder() ;
+        sb.append( subjectCode )
+          .append( "/" )
+          .append( standard )
+          .append( "/" )
+          .append( bookCode )
+          .append( "/" )
+          .append( chapterNum )
+          .append( "/" )
+          .append( questionType )
+          .append( "/" )
+          .append( lctSequence )
+          .append( "/" ) ;
         return sb.toString() ;
     }
     
@@ -291,6 +308,22 @@ public class JEEQuestionImage extends AbstractQuestion
     
     private int getQTypeSeq() {
         return Q_TYPE_SEQ.indexOf( questionType ) ;
+    }
+    
+    // Returns a guesstimate of projected solve time in seconds
+    public int getProjectedTime() {
+
+        if( this.qId != null ) {
+            return qId.getProjectedTime() ;
+        }
+        return 0 ;
+    }
+    
+    public int getDifficultyLevel() {
+        if( this.qId != null ) {
+            return qId.getDifficultyLevel() ;
+        }
+        return 3 ;
     }
     
     public static void main( String[] args ) {

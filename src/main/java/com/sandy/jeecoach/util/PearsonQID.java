@@ -1,12 +1,12 @@
 package com.sandy.jeecoach.util;
 
+import static com.sandy.jeecoach.util.JEEQuestionImage.* ;
+
 import java.util.Arrays ;
 import java.util.List ;
 
 import lombok.Data ;
 import lombok.EqualsAndHashCode ;
-
-import static com.sandy.jeecoach.util.JEEQuestionImage.* ;
 
 /**
  * For Pearson, questions are arranged in sections. The sections are as follows:
@@ -29,11 +29,11 @@ import static com.sandy.jeecoach.util.JEEQuestionImage.* ;
 @EqualsAndHashCode(callSuper = false)
 public class PearsonQID extends QID {
     
-    public static String VSAT = "VSAT" ;
-    public static String SAT  = "SAT" ;
-    public static String ETQ  = "ETQ" ;
-    public static String CA   = "CA" ;
-    public static String AT   = "AT" ;
+    public static final String VSAT = "VSAT" ;
+    public static final String SAT  = "SAT" ;
+    public static final String ETQ  = "ETQ" ;
+    public static final String CA   = "CA" ;
+    public static final String AT   = "AT" ;
     
     public static String[] SECTION_IDS = { VSAT, SAT, ETQ, CA, AT } ;
     public static List<String> SECTION_SEQ = Arrays.asList( VSAT, SAT, ETQ, CA, AT ) ;
@@ -49,7 +49,8 @@ public class PearsonQID extends QID {
     
     private ValidationHelper validator = new ValidationHelper() ;
     
-    PearsonQID( String[] parts ) {
+    PearsonQID( JEEQuestionImage qImg, String[] parts ) {
+        super( qImg ) ;
         parseQID( parts ) ;
     }
 
@@ -139,5 +140,68 @@ public class PearsonQID extends QID {
     
     public int getSecSeq() {
         return SECTION_SEQ.indexOf( sectionId ) ;
+    }
+    
+    public int getProjectedTime() {
+        
+        int projectedTime = 0 ;
+        
+        switch( parent.getQuestionType() ) {
+            case SCA:
+            case LCT:
+                projectedTime = 120 ;
+                if( sectionId.equals( VSAT ) || sectionId.equals( SAT ) ) {
+                    projectedTime = 60 ;
+                }
+                break ;
+                
+            case MCA:
+            case MMT:
+                projectedTime = 240 ;
+                if( sectionId.equals( VSAT ) || sectionId.equals( SAT ) ) {
+                    projectedTime = 180 ;
+                }
+                break ;
+                
+            case NT:
+                projectedTime = 180 ;
+                if( sectionId.equals( VSAT ) || sectionId.equals( SAT ) ) {
+                    projectedTime = 120 ;
+                }
+                break ;
+        }
+        return projectedTime ;
+    }
+    
+    public int getDifficultyLevel() {
+        
+        int difficultyLevel = 3 ;
+        switch( sectionId ) {
+            case VSAT:
+            case SAT:
+                difficultyLevel = 2 ;
+                break ;
+                
+            case ETQ:
+                difficultyLevel = 5 ;
+                break ;
+                
+            case CA:
+            case AT:
+                switch( this.subSectionNumber ) {
+                    case 1:
+                        difficultyLevel = 2 ;
+                        break ;
+                        
+                    case 2:
+                        difficultyLevel = 3 ;
+                        break ;
+                        
+                    case 3:
+                        difficultyLevel = 5 ;
+                        break ;
+                }
+        }
+        return difficultyLevel ;
     }
 }
