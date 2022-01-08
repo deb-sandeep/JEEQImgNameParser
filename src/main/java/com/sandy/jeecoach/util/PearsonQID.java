@@ -1,12 +1,18 @@
 package com.sandy.jeecoach.util;
 
-import static com.sandy.jeecoach.util.JEEQuestionImage.* ;
+import static com.sandy.jeecoach.util.JEEQuestionImage.LCT ;
+import static com.sandy.jeecoach.util.JEEQuestionImage.MCA ;
+import static com.sandy.jeecoach.util.JEEQuestionImage.MMT ;
+import static com.sandy.jeecoach.util.JEEQuestionImage.NT ;
+import static com.sandy.jeecoach.util.JEEQuestionImage.SCA ;
+import static com.sandy.jeecoach.util.JEEQuestionImage.getInt ;
 
 import java.util.Arrays ;
 import java.util.List ;
 
-import lombok.Data ;
 import lombok.EqualsAndHashCode ;
+import lombok.Getter ;
+import lombok.Setter ;
 
 /**
  * For Pearson, questions are arranged in sections. The sections are as follows:
@@ -25,7 +31,6 @@ import lombok.EqualsAndHashCode ;
  * Hence the question ID will have two parts
  * <section identifier>_<question number>
  */
-@Data
 @EqualsAndHashCode(callSuper = false)
 public class PearsonQID extends QID {
     
@@ -38,14 +43,14 @@ public class PearsonQID extends QID {
     public static String[] SECTION_IDS = { VSAT, SAT, ETQ, CA, AT } ;
     public static List<String> SECTION_SEQ = Arrays.asList( VSAT, SAT, ETQ, CA, AT ) ;
     
-    private String sectionId = null ;
+    @Getter @Setter private String sectionId = null ;
     
     // For CA and AT there are subsections, 1, 2, 3 etc. This variable 
     // represents this subsection. For some sections we do not have a subsection
     // in which case this will remain as 0
-    private int subSectionNumber = -1 ;
+    @Getter private int subSectionNumber = -1 ;
     
-    private int questionNumber = -1 ;
+    @Getter private int questionNumber = -1 ;
     
     private ValidationHelper validator = new ValidationHelper() ;
     
