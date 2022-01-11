@@ -1,8 +1,8 @@
 package com.sandy.jeecoach.util;
 
-public abstract class AbstractQuestion {
+public abstract class AbstractQuestion<T> {
 
-    public abstract AbstractQuestion nextQuestion() ;
+    public abstract T nextQuestion() ;
     
     public abstract String getFileName() ;
 }

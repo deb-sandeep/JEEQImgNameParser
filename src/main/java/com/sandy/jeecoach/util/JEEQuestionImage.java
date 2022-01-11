@@ -23,7 +23,7 @@ import lombok.EqualsAndHashCode ;
 
 @Data
 @EqualsAndHashCode( callSuper = false )
-public class JEEQuestionImage extends AbstractQuestion 
+public class JEEQuestionImage extends AbstractQuestion<JEEQuestionImage> 
     implements Comparable<JEEQuestionImage>{
     
     public static final String SCA = "SCA" ;
@@ -240,11 +240,11 @@ public class JEEQuestionImage extends AbstractQuestion
     }
     
     @Override
-    public AbstractQuestion nextQuestion() {
+    public JEEQuestionImage nextQuestion() {
         JEEQuestionImage q = this.getClone() ;
         if( q.isPart() ) {
             q.partNumber++ ;
-            if( q.partNumber > 3 ) {
+            if( q.partNumber > 2 ) {
                 q.partNumber = -1 ;
                 q.getQId().incrementQuestionNumber() ;
             }
@@ -324,6 +324,19 @@ public class JEEQuestionImage extends AbstractQuestion
             return qId.getDifficultyLevel() ;
         }
         return 3 ;
+    }
+    
+    public String getNextQuestionType() {
+        int index = getQTypeSeq() ;
+        index++ ;
+        if( index > Q_TYPE_SEQ.size()-1 ) {
+            index = 0 ;
+        }
+        return Q_TYPE_SEQ.get( index ) ;
+    }
+    
+    public String getNextSectionName() {
+        return this.qId.getNextSectionName() ;
     }
     
     public static void main( String[] args ) {

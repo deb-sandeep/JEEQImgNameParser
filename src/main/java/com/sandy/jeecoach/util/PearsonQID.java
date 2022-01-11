@@ -12,7 +12,6 @@ import java.util.List ;
 
 import lombok.EqualsAndHashCode ;
 import lombok.Getter ;
-import lombok.Setter ;
 
 /**
  * For Pearson, questions are arranged in sections. The sections are as follows:
@@ -43,8 +42,6 @@ public class PearsonQID extends QID {
     public static String[] SECTION_IDS = { VSAT, SAT, ETQ, CA, AT } ;
     public static List<String> SECTION_SEQ = Arrays.asList( VSAT, SAT, ETQ, CA, AT ) ;
     
-    @Getter @Setter private String sectionId = null ;
-    
     // For CA and AT there are subsections, 1, 2, 3 etc. This variable 
     // represents this subsection. For some sections we do not have a subsection
     // in which case this will remain as 0
@@ -66,16 +63,27 @@ public class PearsonQID extends QID {
                     "Invalid number of PF qID segments. Should be 2-3" ) ;
         }
         
-        this.sectionId = qIdParts[0].trim() ;
+        super.sectionId = qIdParts[0].trim() ;
         validator.validatePFSectionId( this.sectionId ) ;
         
         extractAttributes( qIdParts ) ;
     }
     
+    public void setSectionId( String newSectionId ) {
+        super.sectionId = newSectionId ;
+        if( super.sectionId.equals( CA ) || 
+            super.sectionId.equals( "AT" ) ) {
+            subSectionNumber = 1 ;
+        }
+        else {
+            subSectionNumber = -1 ;
+        }
+    }
+    
     private void extractAttributes( String[] qIdParts ) {
         
-        if( this.sectionId.equals( AT ) || 
-            this.sectionId.equals( CA ) ) {
+        if( super.sectionId.equals( AT ) || 
+            super.sectionId.equals( CA ) ) {
             
             if( qIdParts.length != 3 ) {
                 throw new IllegalArgumentException( 
@@ -208,5 +216,12 @@ public class PearsonQID extends QID {
                 }
         }
         return difficultyLevel ;
+    }
+
+    @Override
+    public String getNextSectionName() {
+        int index = getSecSeq() ;
+        index = (index == SECTION_SEQ.size()-1) ? 0 : ++index ;
+        return SECTION_SEQ.get( index ) ;
     }
 }
