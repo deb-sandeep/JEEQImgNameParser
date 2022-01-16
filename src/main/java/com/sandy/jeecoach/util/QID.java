@@ -24,5 +24,7 @@ public abstract class QID implements Comparable<QID>{
     
     public abstract int getDifficultyLevel() ;
     
-    public abstract String getNextSectionName() ;
+    public String getNextSectionName() {
+        return "" ;
+    }
 }

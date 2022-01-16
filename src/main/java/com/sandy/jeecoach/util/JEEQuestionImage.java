@@ -1,6 +1,6 @@
 package com.sandy.jeecoach.util ;
 
-import static com.sandy.jeecoach.util.JEEBookCode.PEARSON_IIT_FOUNDATION ;
+import static com.sandy.jeecoach.util.JEEBookCode.* ;
 
 import java.io.File ;
 import java.util.Arrays ;
@@ -125,6 +125,9 @@ public class JEEQuestionImage extends AbstractQuestion<JEEQuestionImage>
     private void parseBookSpecificQuestionId( String[] qIdParts ) {
         if( this.bookCode.equals( PEARSON_IIT_FOUNDATION ) ) {
             this.qId = new PearsonQID( this, qIdParts ) ;
+        }
+        else if( this.bookCode.equals( MTG_REASONING ) ) {
+            this.qId = new MTGReasoningQID( this, qIdParts ) ;
         }
         else {
             throw new IllegalArgumentException( 
